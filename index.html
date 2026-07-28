@@ -1,0 +1,2274 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>CELTIIS COP FTTH - Gestion des Contrôles Qualité Fibre</title>
+  <meta name="description" content="Plateforme professionnelle de gestion des contrôles COP FTTH CELTIIS." />
+  
+  <!-- Tailwind CSS 3.x CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              500: '#0052cc',
+              600: '#0043a8',
+              700: '#003585',
+            },
+            ftth: {
+              blue: '#0052CC',
+              cyan: '#00C7E6',
+              green: '#00B8D9',
+              dark: '#0F172A',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- External Libraries: SheetJS (XLSX) & jsPDF -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+  <!-- React 18 & ReactDOM 18 & Babel Standalone -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; }
+    .font-mono, code, pre { font-family: 'JetBrains Mono', monospace; }
+    
+    /* Scrollbar personnalisée */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.4); border-radius: 9999px; }
+    .dark ::-webkit-scrollbar-thumb { background: rgba(51, 65, 85, 0.6); }
+    
+    /* Animations */
+    .fade-in { animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .slide-in { animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+    @keyframes slideIn { from { transform: translateX(-24px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    
+    .scale-in { animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    @keyframes scaleIn { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    
+    .pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
+    @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 20px rgba(0, 82, 204, 0.15); } 50% { box-shadow: 0 0 40px rgba(0, 82, 204, 0.3); } }
+    
+    .float { animation: float 6s ease-in-out infinite; }
+    @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
+
+    /* Glassmorphism */
+    .glass {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    .dark .glass {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* Gradient text */
+    .gradient-text {
+      background: linear-gradient(135deg, #0052CC, #00C7E6, #00B8D9);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Badge lumineux */
+    .badge-glow {
+      position: relative;
+      overflow: hidden;
+    }
+    .badge-glow::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+      pointer-events: none;
+    }
+
+    /* Stats cards */
+    .stat-card {
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0, 82, 204, 0.15);
+    }
+    .stat-card .icon-bg {
+      position: absolute;
+      right: -12px;
+      bottom: -12px;
+      font-size: 5rem;
+      opacity: 0.08;
+      pointer-events: none;
+    }
+
+    /* Dossier link */
+    .dossier-link {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      display: inline-block;
+      position: relative;
+    }
+    .dossier-link::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #0052CC, #00C7E6);
+      transition: width 0.3s ease;
+    }
+    .dossier-link:hover::after { width: 100%; }
+    .dossier-link:hover { transform: scale(1.02); }
+
+    /* Footer */
+    .footer-credit {
+      font-size: 0.6rem;
+      color: rgba(148, 163, 184, 0.4);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    .footer-credit:hover { color: rgba(148, 163, 184, 0.7); }
+    .dark .footer-credit { color: rgba(71, 85, 105, 0.4); }
+    .dark .footer-credit:hover { color: rgba(148, 163, 184, 0.6); }
+
+    /* Glass cards */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .glass-card:hover {
+      box-shadow: 0 8px 32px rgba(0, 82, 204, 0.08);
+      transform: translateY(-2px);
+    }
+    .dark .glass-card {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* Boutons modernes */
+    .btn-primary {
+      background: linear-gradient(135deg, #0052CC, #00C7E6);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-primary:hover {
+      transform: scale(1.02);
+      box-shadow: 0 8px 24px rgba(0, 82, 204, 0.3);
+    }
+    .btn-primary:active { transform: scale(0.98); }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #DC2626, #EF4444);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-danger:hover {
+      transform: scale(1.02);
+      box-shadow: 0 8px 24px rgba(220, 38, 38, 0.3);
+    }
+
+    /* Inputs modernes */
+    .input-modern {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 2px solid transparent;
+      background: rgba(241, 245, 249, 0.8);
+    }
+    .input-modern:focus {
+      border-color: #0052CC;
+      background: white;
+      box-shadow: 0 0 0 4px rgba(0, 82, 204, 0.1);
+      outline: none;
+    }
+    .dark .input-modern {
+      background: rgba(30, 41, 59, 0.8);
+    }
+    .dark .input-modern:focus {
+      background: rgba(30, 41, 59, 1);
+      box-shadow: 0 0 0 4px rgba(0, 82, 204, 0.2);
+    }
+
+    /* Tableau moderne */
+    .table-modern thead {
+      background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+    }
+    .dark .table-modern thead {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+    }
+    .table-modern tbody tr {
+      transition: all 0.2s ease;
+    }
+    .table-modern tbody tr:hover {
+      background: rgba(0, 82, 204, 0.03);
+    }
+    .dark .table-modern tbody tr:hover {
+      background: rgba(0, 82, 204, 0.08);
+    }
+
+    /* Statut badge */
+    .status-badge {
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .status-badge.success { background: rgba(34, 197, 94, 0.15); color: #16a34a; }
+    .status-badge.error { background: rgba(239, 68, 68, 0.15); color: #dc2626; }
+    .status-badge.warning { background: rgba(251, 191, 36, 0.15); color: #d97706; }
+    .status-badge.info { background: rgba(59, 130, 246, 0.15); color: #2563eb; }
+    .status-badge.purple { background: rgba(139, 92, 246, 0.15); color: #7c3aed; }
+    .dark .status-badge.success { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+    .dark .status-badge.error { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+    .dark .status-badge.warning { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+    .dark .status-badge.info { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+    .dark .status-badge.purple { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+
+    /* Navigation item */
+    .nav-item {
+      position: relative;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .nav-item::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 0.75rem;
+      background: linear-gradient(135deg, #0052CC, #00C7E6);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: -1;
+    }
+    .nav-item:hover::before { opacity: 0.05; }
+    .nav-item.active::before { opacity: 1; }
+    .nav-item.active span:last-child { color: white; }
+    .dark .nav-item.active span:last-child { color: white; }
+
+    /* Animation de chargement pour les boutons */
+    .btn-loading {
+      position: relative;
+      pointer-events: none;
+    }
+    .btn-loading::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      animation: shimmer 1.5s infinite;
+    }
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    @media (max-width: 640px) {
+      body { font-size: 14px; }
+      h1 { font-size: 1.25rem; }
+      .text-xs { font-size: 0.65rem; }
+    }
+    @media (min-width: 641px) and (max-width: 1024px) {
+      body { font-size: 15px; }
+    }
+  </style>
+</head>
+<body class="h-full bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 text-slate-900 dark:text-slate-100">
+  <div id="root" class="h-full flex flex-col"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
+
+    const STORAGE_KEYS = {
+      USERS: 'cop_ftth_users',
+      PRESTATAIRES: 'cop_ftth_prestataires',
+      CLIENTS: 'cop_ftth_clients',
+      CONTROLES: 'cop_ftth_controles',
+      CURRENT_USER: 'cop_ftth_current_user',
+      THEME: 'cop_ftth_theme',
+      PREFILL_DOSSIER: 'cop_ftth_prefill_dossier',
+    };
+
+    const DEFAULT_USERS = [
+      { id: 'u-1', personalId: 'COP0001', nom: 'KPOTA', prenom: 'Kevin', password: 'Temp1234', role: 'ADMIN', statut: 'ACTIF', mustChangePassword: false },
+      { id: 'u-2', personalId: 'COP0002', nom: 'SOGLO', prenom: 'Marc', password: 'Temp1234', role: 'TECHNICIEN', statut: 'ACTIF', mustChangePassword: false },
+      { id: 'u-3', personalId: 'COP0003', nom: 'ADANHO', prenom: 'Amina', password: 'Temp1234', role: 'TECHNICIEN', statut: 'ACTIF', mustChangePassword: false },
+    ];
+
+    const DEFAULT_PRESTATAIRES = [
+      { id: 'p-1', nom: 'CELTIIS', code: 'CEL', contact: '+229 97 00 00 01', statut: 'ACTIF', dateAjout: '2026-01-10' },
+      { id: 'p-2', nom: 'SOGETEL', code: 'SOG', contact: '+229 97 00 00 02', statut: 'ACTIF', dateAjout: '2026-01-12' },
+      { id: 'p-3', nom: 'SPIE BENIN', code: 'SPIE', contact: '+229 97 00 00 03', statut: 'ACTIF', dateAjout: '2026-01-15' },
+      { id: 'p-4', nom: 'ERT TELECOM', code: 'ERT', contact: '+229 97 00 00 04', statut: 'ACTIF', dateAjout: '2026-02-01' },
+      { id: 'p-5', nom: 'AFRIQUE FIBRE', code: 'AFIB', contact: '+229 97 00 00 05', statut: 'ACTIF', dateAjout: '2026-02-10' },
+    ];
+
+    const DEFAULT_CLIENTS = [
+      { id: 'c-1', numeroDossier: '12345', nomClient: 'Jean Dupont', contact: '+229 97 00 11 11', prestataire: 'CELTIIS', type: 'Résidentiel', localite: 'Abomey-Calavi', gpsClient: '6.4521, 2.3512', gpsFat: '6.4519, 2.3510', dateAffectation: '2026-07-18', dateActivation: '2026-07-27', copEffectue: 'OUI', technicienCop: 'Kevin KPOTA', equipement: 'ONT Huawei HG8245', source: 'Liste COP A', dateImport: '2026-07-20' },
+      { id: 'c-2', numeroDossier: '12346', nomClient: 'Société SOTRA-BENIN', contact: '+229 97 00 22 22', prestataire: 'SOGETEL', type: 'Entreprise', localite: 'Cotonou - Akpakpa', gpsClient: '6.3689, 2.4410', gpsFat: '6.3685, 2.4408', dateAffectation: '2026-07-19', dateActivation: '2026-07-26', copEffectue: 'OUI', technicienCop: 'Marc SOGLO', equipement: 'ONT ZTE F660', source: 'Liste COP A', dateImport: '2026-07-20' },
+      { id: 'c-3', numeroDossier: '12347', nomClient: 'Koffi MENSAH', contact: '+229 97 00 33 33', prestataire: 'CELTIIS', type: 'Résidentiel', localite: 'Porto-Novo', gpsClient: '6.4969, 2.6289', gpsFat: '', dateAffectation: '2026-07-21', dateActivation: '', copEffectue: 'NON', technicienCop: 'Kevin KPOTA', equipement: '', source: 'Liste COP B', dateImport: '2026-07-21' },
+      { id: 'c-4', numeroDossier: '12348', nomClient: 'Clinique Sainte Marie', contact: '+229 97 00 44 44', prestataire: 'SPIE BENIN', type: 'Entreprise', localite: 'Cotonou - Haie Vive', gpsClient: '6.3571, 2.3950', gpsFat: '', dateAffectation: '2026-07-22', dateActivation: '', copEffectue: 'NON', technicienCop: 'Marc SOGLO', equipement: '', source: 'Liste COP B', dateImport: '2026-07-22' },
+      { id: 'c-5', numeroDossier: '12349', nomClient: 'Chantal DOSSOU', contact: '+229 97 00 55 55', prestataire: 'ERT TELECOM', type: 'Résidentiel', localite: 'Godomey', gpsClient: '6.4112, 2.3299', gpsFat: '', dateAffectation: '2026-07-23', dateActivation: '', copEffectue: 'NON', technicienCop: 'Amina ADANHO', equipement: '', source: 'Liste COP A', dateImport: '2026-07-23' },
+      { id: 'c-6', numeroDossier: '12350', nomClient: 'Hôtel Les Cocotiers', contact: '+229 97 00 66 66', prestataire: 'AFRIQUE FIBRE', type: 'Entreprise', localite: 'Ouidah', gpsClient: '6.3611, 2.0850', gpsFat: '', dateAffectation: '2026-07-24', dateActivation: '', copEffectue: 'NON', technicienCop: 'Amina ADANHO', equipement: '', source: 'Liste COP B', dateImport: '2026-07-24' },
+    ];
+
+    const DEFAULT_CONTROLES = [
+      {
+        id: 'cop-1',
+        numeroDossier: '12345',
+        nomClient: 'Jean Dupont',
+        prestataire: 'CELTIIS',
+        localite: 'Abomey-Calavi',
+        gpsClient: '',
+        dateControle: '2026-07-27',
+        technicien: 'Kevin KPOTA',
+        conforme: true,
+        nonConformites: ['AUCUN'],
+        gravite: 'Aucune',
+        commentaire: 'Installation parfaitement conforme aux normes FTTH CELTIIS.',
+        responsableAction: '',
+        cop: 'OK',
+        dateCreation: '2026-07-27T10:30:00Z',
+      },
+      {
+        id: 'cop-2',
+        numeroDossier: '12346',
+        nomClient: 'Société SOTRA-BENIN',
+        prestataire: 'SOGETEL',
+        localite: 'Cotonou - Akpakpa',
+        gpsClient: '',
+        dateControle: '2026-07-26',
+        technicien: 'Marc SOGLO',
+        conforme: false,
+        nonConformites: ['MANQUE DE POTEAUX', 'TIRAGE MAL EFFECTUÉ'],
+        gravite: 'Majeure',
+        commentaire: 'Traversée de rue sans poteau intermédiaire. À corriger sous 48h.',
+        responsableAction: '',
+        cop: 'NOK',
+        dateCreation: '2026-07-26T14:15:00Z',
+      },
+    ];
+
+    const storageService = {
+      resetAllPasswordsForTest: () => {
+        localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(DEFAULT_USERS));
+        const curr = storageService.getCurrentUser();
+        if (curr) { curr.password = 'Temp1234'; curr.mustChangePassword = false; storageService.setCurrentUser(curr); }
+      },
+      init: () => {
+        if (!localStorage.getItem(STORAGE_KEYS.USERS)) localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(DEFAULT_USERS));
+        if (!localStorage.getItem(STORAGE_KEYS.PRESTATAIRES)) localStorage.setItem(STORAGE_KEYS.PRESTATAIRES, JSON.stringify(DEFAULT_PRESTATAIRES));
+        if (!localStorage.getItem(STORAGE_KEYS.CLIENTS)) localStorage.setItem(STORAGE_KEYS.CLIENTS, JSON.stringify(DEFAULT_CLIENTS));
+        if (!localStorage.getItem(STORAGE_KEYS.CONTROLES)) localStorage.setItem(STORAGE_KEYS.CONTROLES, JSON.stringify(DEFAULT_CONTROLES));
+      },
+      getUsers: () => { storageService.init(); return JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]'); },
+      saveUsers: (data) => localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(data)),
+      getUserByPersonalId: (personalId) => {
+        const users = storageService.getUsers();
+        return users.find(u => u.personalId.toLowerCase() === personalId.trim().toLowerCase());
+      },
+      addUser: (user) => {
+        const users = storageService.getUsers();
+        const newUser = { ...user, id: 'u-' + Date.now(), mustChangePassword: true };
+        users.push(newUser);
+        storageService.saveUsers(users);
+        return newUser;
+      },
+      updateUser: (user) => {
+        const users = storageService.getUsers();
+        const idx = users.findIndex(u => u.id === user.id);
+        if (idx !== -1) { users[idx] = user; storageService.saveUsers(users); }
+      },
+      resetUserPassword: (userId, newTemp = 'Temp1234') => {
+        const users = storageService.getUsers();
+        const u = users.find(x => x.id === userId);
+        if (u) { u.password = newTemp; u.mustChangePassword = true; storageService.saveUsers(users); return true; }
+        return false;
+      },
+      toggleUserStatus: (userId) => {
+        const users = storageService.getUsers();
+        const u = users.find(x => x.id === userId);
+        if (u) { u.statut = u.statut === 'ACTIF' ? 'INACTIF' : 'ACTIF'; storageService.saveUsers(users); }
+      },
+      deleteUser: (userId) => {
+        const users = storageService.getUsers().filter(u => u.id !== userId);
+        storageService.saveUsers(users);
+      },
+      changePassword: (userId, newPass) => {
+        const users = storageService.getUsers();
+        const u = users.find(x => x.id === userId);
+        if (u) {
+          u.password = newPass;
+          u.mustChangePassword = false;
+          storageService.saveUsers(users);
+          const curr = storageService.getCurrentUser();
+          if (curr && curr.id === userId) { curr.password = newPass; curr.mustChangePassword = false; storageService.setCurrentUser(curr); }
+          return true;
+        }
+        return false;
+      },
+      getCurrentUser: () => { const data = localStorage.getItem(STORAGE_KEYS.CURRENT_USER); return data ? JSON.parse(data) : null; },
+      setCurrentUser: (user) => user ? localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user)) : localStorage.removeItem(STORAGE_KEYS.CURRENT_USER),
+      getPrestataires: () => { storageService.init(); return JSON.parse(localStorage.getItem(STORAGE_KEYS.PRESTATAIRES) || '[]'); },
+      savePrestataires: (data) => localStorage.setItem(STORAGE_KEYS.PRESTATAIRES, JSON.stringify(data)),
+      addPrestataire: (nom, code, contact = '') => {
+        const list = storageService.getPrestataires();
+        const newItem = { id: 'p-' + Date.now(), nom: nom.trim(), code: code.trim().toUpperCase(), contact: contact.trim(), statut: 'ACTIF', dateAjout: new Date().toISOString().split('T')[0] };
+        list.push(newItem);
+        storageService.savePrestataires(list);
+        return newItem;
+      },
+      updatePrestataire: (item) => {
+        const list = storageService.getPrestataires();
+        const idx = list.findIndex(p => p.id === item.id);
+        if (idx !== -1) { list[idx] = item; storageService.savePrestataires(list); }
+      },
+      deletePrestataire: (id) => {
+        const list = storageService.getPrestataires().filter(p => p.id !== id);
+        storageService.savePrestataires(list);
+      },
+      getClients: () => { storageService.init(); return JSON.parse(localStorage.getItem(STORAGE_KEYS.CLIENTS) || '[]'); },
+      saveClients: (data) => localStorage.setItem(STORAGE_KEYS.CLIENTS, JSON.stringify(data)),
+      deleteClient: (id) => {
+        const clients = storageService.getClients().filter(c => c.id !== id);
+        storageService.saveClients(clients);
+      },
+      updateClientField: (id, field, value) => {
+        const clients = storageService.getClients().map(c => c.id === id ? { ...c, [field]: value } : c);
+        storageService.saveClients(clients);
+      },
+      markClientCopEffectue: (numeroDossier, technicien) => {
+        const clients = storageService.getClients();
+        const idx = clients.findIndex(c => c.numeroDossier.toLowerCase() === numeroDossier.trim().toLowerCase());
+        if (idx === -1) return;
+        clients[idx] = { ...clients[idx], copEffectue: 'OUI', technicienCop: technicien };
+        storageService.saveClients(clients);
+      },
+      getClientByNumeroDossier: (num) => {
+        const clients = storageService.getClients();
+        return clients.find(c => c.numeroDossier.toLowerCase() === num.trim().toLowerCase());
+      },
+      importClientsList: (newClients, source) => {
+        const existing = storageService.getClients();
+        const dateImport = new Date().toISOString().split('T')[0];
+        const formatted = newClients.map((c, i) => ({ ...c, id: 'c-imp-' + Date.now() + '-' + i, source, dateImport }));
+        const map = new Map(existing.map(item => [item.numeroDossier.toLowerCase(), item]));
+        formatted.forEach(item => map.set(item.numeroDossier.toLowerCase(), item));
+        const merged = Array.from(map.values());
+        storageService.saveClients(merged);
+        return formatted.length;
+      },
+      getControles: () => { storageService.init(); return JSON.parse(localStorage.getItem(STORAGE_KEYS.CONTROLES) || '[]'); },
+      saveControles: (data) => localStorage.setItem(STORAGE_KEYS.CONTROLES, JSON.stringify(data)),
+      addControle: (controle) => {
+        const list = storageService.getControles();
+        const newItem = { ...controle, id: 'cop-' + Date.now(), dateCreation: new Date().toISOString() };
+        list.unshift(newItem);
+        storageService.saveControles(list);
+        return newItem;
+      },
+      deleteControle: (id) => {
+        const list = storageService.getControles().filter(c => c.id !== id);
+        storageService.saveControles(list);
+      },
+      filterControles: (filters) => {
+        const list = storageService.getControles();
+        return list.filter(c => {
+          if (filters.dateDebut && c.dateControle < filters.dateDebut) return false;
+          if (filters.dateFin && c.dateControle > filters.dateFin) return false;
+          if (filters.prestataire && filters.prestataire !== 'TOUS' && c.prestataire !== filters.prestataire) return false;
+          if (filters.conforme === 'OK' && !c.conforme) return false;
+          if (filters.conforme === 'NOK' && c.conforme) return false;
+          if (filters.searchQuery) {
+            const q = filters.searchQuery.trim().toLowerCase();
+            const match = c.nomClient.toLowerCase().includes(q) || c.numeroDossier.toLowerCase().includes(q) || c.prestataire.toLowerCase().includes(q) || c.technicien.toLowerCase().includes(q) || c.localite.toLowerCase().includes(q);
+            if (!match) return false;
+          }
+          return true;
+        });
+      },
+      getTheme: () => localStorage.getItem(STORAGE_KEYS.THEME) || 'light',
+      setTheme: (t) => {
+        localStorage.setItem(STORAGE_KEYS.THEME, t);
+        if (t === 'dark') document.documentElement.classList.add('dark');
+        else document.documentElement.classList.remove('dark');
+      },
+    };
+
+    const exportService = {
+      exportToCSV: (controles, filename = 'export_cop_ftth.csv') => {
+        if (!controles.length) return alert('Aucune donnée à exporter.');
+        const headers = ['Date Controle', 'N° Dossier', 'Client', 'Prestataire', 'Localité', 'Conforme', 'COP Status', 'Non-conformités', 'Gravité', 'Commentaire', 'Technicien COP'];
+        const rows = controles.map(c => [
+          `"${c.dateControle}"`, `"${c.numeroDossier.replace(/"/g, '""')}"`, `"${c.nomClient.replace(/"/g, '""')}"`,
+          `"${c.prestataire.replace(/"/g, '""')}"`, `"${c.localite.replace(/"/g, '""')}"`,
+          `"${c.cop === '---' ? '---' : (c.conforme ? 'OUI' : 'NON')}"`, `"${c.cop}"`, `"${c.nonConformites.join('; ').replace(/"/g, '""')}"`,
+          `"${c.gravite}"`, `"${(c.commentaire || '').replace(/"/g, '""')}"`,
+          `"${c.technicien.replace(/"/g, '""')}"`
+        ]);
+        const csv = '\uFEFF' + [headers.join(';'), ...rows.map(e => e.join(';'))].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
+      },
+      exportToExcel: (controles, filename = 'export_cop_ftth.xlsx') => {
+        if (!controles.length) return alert('Aucune donnée à exporter.');
+        const formatted = controles.map(c => ({
+          'Date Contrôle': c.dateControle, 'N° Dossier / Ligne': c.numeroDossier, 'Client': c.nomClient,
+          'Prestataire': c.prestataire, 'Localité': c.localite,
+          'Conforme': c.cop === '---' ? '---' : (c.conforme ? 'OUI' : 'NON'), 'COP Status': c.cop, 'Type de Non-conformité': c.nonConformites.join(', '),
+          'Gravité': c.gravite, 'Commentaire': c.commentaire, 'Technicien COP': c.technicien
+        }));
+        if (window.XLSX) {
+          const ws = XLSX.utils.json_to_sheet(formatted);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, 'Contrôles COP');
+          XLSX.writeFile(wb, filename);
+        } else {
+          exportService.exportToCSV(controles, filename.replace('.xlsx', '.csv'));
+        }
+      },
+      exportToPDF: (controles, filename = 'rapport_cop_ftth.pdf') => {
+        if (!controles.length) return alert('Aucune donnée à exporter.');
+        if (window.jspdf) {
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF('l', 'mm', 'a4');
+          doc.setFillColor(0, 82, 204);
+          doc.rect(0, 0, 297, 24, 'F');
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(16);
+          doc.text('RAPPORT DE CONTRÔLE COP FTTH - CELTIIS BENIN', 14, 15);
+          doc.setFontSize(10);
+          doc.text(`Généré le: ${new Date().toLocaleDateString('fr-FR')} | Total: ${controles.length} dossiers`, 190, 15);
+          const cols = ['Date', 'N° Dossier', 'Client', 'Prestataire', 'Localité', 'Conforme', 'Gravité', 'Technicien'];
+          const rows = controles.map(c => [c.dateControle, c.numeroDossier, c.nomClient, c.prestataire, c.localite, c.cop === '---' ? '--- (NON EFFECTUÉ)' : (c.conforme ? 'OK (OUI)' : 'NOK (NON)'), c.gravite, c.technicien]);
+          if (doc.autoTable) {
+            doc.autoTable({
+              head: [cols], body: rows, startY: 30, theme: 'striped',
+              headStyles: { fillColor: [0, 82, 204], textColor: [255, 255, 255] },
+              didParseCell: (data) => {
+                if (data.section === 'body' && data.column.index === 5) {
+                  if (data.cell.raw.includes('---')) data.cell.styles.textColor = [124, 58, 237];
+                  else if (data.cell.raw.includes('NOK')) data.cell.styles.textColor = [220, 38, 38];
+                  else data.cell.styles.textColor = [22, 163, 74];
+                }
+              }
+            });
+          }
+          doc.save(filename);
+        } else {
+          window.print();
+        }
+      }
+    };
+
+    // --- Footer ---
+    function FooterCredit() {
+      return (
+        <div className="text-center py-4 px-4 border-t border-slate-200/30 dark:border-slate-700/30">
+          <span className="footer-credit select-none">
+            <i className="fas fa-code mr-1"></i> By KEVIN KPOTA · 2026
+          </span>
+        </div>
+      );
+    }
+
+    // --- LOGIN SCREEN (Design amélioré) ---
+    function LoginScreen({ onLoginSuccess }) {
+      const [personalId, setPersonalId] = useState('');
+      const [password, setPassword] = useState('');
+      const [error, setError] = useState('');
+      const [loading, setLoading] = useState(false);
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
+        setTimeout(() => {
+          const user = storageService.getUserByPersonalId(personalId);
+          if (!user) { setError('Identifiant Personnel introuvable.'); setLoading(false); return; }
+          if (user.statut === 'INACTIF') { setError('Ce compte a été désactivé par l\'Administrateur.'); setLoading(false); return; }
+          if (user.password && user.password !== password) { setError('Mot de passe incorrect.'); setLoading(false); return; }
+          storageService.setCurrentUser(user);
+          onLoginSuccess(user);
+          setLoading(false);
+        }, 800);
+      };
+
+      return (
+        <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900">
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[radial-gradient(ellipse_at_center,_rgba(0,82,204,0.08)_0%,_transparent_70%)]"></div>
+            <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+            <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          </div>
+          
+          <div className="relative w-full max-w-md">
+            <div className="glass rounded-3xl p-8 shadow-2xl border border-white/20 backdrop-blur-xl">
+              <div className="text-center space-y-3 mb-8">
+                <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-blue-600 via-cyan-500 to-emerald-400 p-0.5 shadow-2xl">
+                  <div className="w-full h-full rounded-2xl bg-slate-900/90 flex items-center justify-center text-3xl">
+                    <i className="fas fa-wifi text-blue-400"></i>
+                  </div>
+                </div>
+                <h1 className="text-3xl font-extrabold gradient-text">
+                  CELTIIS COP FTTH
+                </h1>
+                <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Plateforme de Gestion des Contrôles</p>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {error && (
+                  <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400 text-xs flex items-center gap-2 fade-in">
+                    <i className="fas fa-exclamation-circle"></i>
+                    <span>{error}</span>
+                  </div>
+                )}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5 tracking-wider uppercase">
+                    <i className="fas fa-id-card mr-1.5"></i> ID Personnel
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={personalId}
+                    onChange={e => setPersonalId(e.target.value.toUpperCase())}
+                    placeholder="Ex: COP0001"
+                    className="input-modern w-full px-4 py-3 rounded-xl bg-white/5 border border-slate-700/50 text-white font-mono font-bold text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none transition-all placeholder:text-slate-600"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5 tracking-wider uppercase">
+                    <i className="fas fa-lock mr-1.5"></i> Mot de passe
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="input-modern w-full px-4 py-3 rounded-xl bg-white/5 border border-slate-700/50 text-white text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none transition-all placeholder:text-slate-600"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className={`w-full py-3.5 rounded-xl btn-primary text-white font-extrabold text-sm shadow-lg transition-all ${loading ? 'btn-loading opacity-70' : 'hover:shadow-xl hover:scale-[1.02]'}`}
+                >
+                  {loading ? (
+                    <span><i className="fas fa-spinner fa-spin mr-2"></i> CONNEXION...</span>
+                  ) : (
+                    <span><i className="fas fa-arrow-right-to-bracket mr-2"></i> SE CONNECTER</span>
+                  )}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // --- CHANGE PASSWORD SCREEN (Design amélioré) ---
+    function ChangePasswordScreen({ onSuccess, currentUser }) {
+      const [newPassword, setNewPassword] = useState('');
+      const [confirmPassword, setConfirmPassword] = useState('');
+      const [error, setError] = useState('');
+      const [success, setSuccess] = useState(false);
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        setError('');
+        if (newPassword.length < 6) return setError('Le mot de passe doit contenir au moins 6 caractères.');
+        if (newPassword !== confirmPassword) return setError('Les mots de passe ne correspondent pas.');
+        const result = storageService.changePassword(currentUser.id, newPassword);
+        if (result) { setSuccess(true); setTimeout(onSuccess, 1200); } 
+        else setError('Une erreur est survenue.');
+      };
+
+      return (
+        <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900">
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[radial-gradient(ellipse_at_center,_rgba(0,82,204,0.08)_0%,_transparent_70%)]"></div>
+          </div>
+          <div className="relative w-full max-w-md">
+            <div className="glass rounded-3xl p-8 shadow-2xl border border-white/20 backdrop-blur-xl">
+              <div className="text-center space-y-3 mb-8">
+                <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-blue-600 via-cyan-500 to-emerald-400 p-0.5 shadow-2xl">
+                  <div className="w-full h-full rounded-2xl bg-slate-900/90 flex items-center justify-center text-3xl">
+                    <i className="fas fa-key text-blue-400"></i>
+                  </div>
+                </div>
+                <h1 className="text-2xl font-extrabold gradient-text">Changer le mot de passe</h1>
+                <p className="text-xs text-slate-400">{currentUser.prenom} {currentUser.nom} • {currentUser.personalId}</p>
+                {currentUser.mustChangePassword && (
+                  <p className="text-xs text-amber-400 font-semibold bg-amber-500/10 px-3 py-1.5 rounded-xl inline-block">
+                    <i className="fas fa-exclamation-triangle mr-1.5"></i> Première connexion — changement obligatoire
+                  </p>
+                )}
+              </div>
+
+              {success ? (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 mx-auto bg-emerald-500/20 rounded-full flex items-center justify-center text-3xl text-emerald-400">
+                    <i className="fas fa-check-circle"></i>
+                  </div>
+                  <p className="mt-4 font-bold text-emerald-400 text-sm">Mot de passe changé avec succès !</p>
+                  <p className="text-xs text-slate-400 mt-1">Redirection en cours...</p>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  {error && (
+                    <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400 text-xs flex items-center gap-2">
+                      <i className="fas fa-exclamation-circle"></i>
+                      <span>{error}</span>
+                    </div>
+                  )}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5 tracking-wider uppercase">
+                      <i className="fas fa-lock mr-1.5"></i> Nouveau mot de passe
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      value={newPassword}
+                      onChange={e => setNewPassword(e.target.value)}
+                      placeholder="Minimum 6 caractères"
+                      className="input-modern w-full px-4 py-3 rounded-xl bg-white/5 border border-slate-700/50 text-white text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none transition-all placeholder:text-slate-600"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5 tracking-wider uppercase">
+                      <i className="fas fa-check-double mr-1.5"></i> Confirmer
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      value={confirmPassword}
+                      onChange={e => setConfirmPassword(e.target.value)}
+                      placeholder="Répétez le mot de passe"
+                      className="input-modern w-full px-4 py-3 rounded-xl bg-white/5 border border-slate-700/50 text-white text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none transition-all placeholder:text-slate-600"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full py-3.5 rounded-xl btn-primary text-white font-extrabold text-sm shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all"
+                  >
+                    <i className="fas fa-save mr-2"></i> CHANGER LE MOT DE PASSE
+                  </button>
+                  {!currentUser.mustChangePassword && (
+                    <button
+                      type="button"
+                      onClick={onSuccess}
+                      className="w-full py-2.5 rounded-xl border border-slate-700/50 font-bold text-xs text-slate-400 hover:bg-white/5 transition-all"
+                    >
+                      <i className="fas fa-times mr-2"></i> Annuler
+                    </button>
+                  )}
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // --- DASHBOARD VIEW (Design amélioré) ---
+    function DashboardView() {
+      const controles = storageService.getControles();
+      const prestataires = storageService.getPrestataires();
+      const totalCop = controles.length;
+      const conformes = controles.filter(c => c.conforme && c.cop !== '---').length;
+      const nonConformes = controles.filter(c => !c.conforme && c.cop !== '---').length;
+      const nonEffectues = controles.filter(c => c.cop === '---').length;
+      const rate = totalCop > 0 ? ((conformes / totalCop) * 100).toFixed(1) : '100.0';
+      
+      const stats = {};
+      prestataires.forEach(p => stats[p.nom] = { total: 0, ok: 0, nok: 0, nonEffectue: 0 });
+      controles.forEach(c => {
+        if (!stats[c.prestataire]) stats[c.prestataire] = { total: 0, ok: 0, nok: 0, nonEffectue: 0 };
+        stats[c.prestataire].total += 1;
+        if (c.cop === '---') stats[c.prestataire].nonEffectue += 1;
+        else if (c.conforme) stats[c.prestataire].ok += 1;
+        else stats[c.prestataire].nok += 1;
+      });
+
+      const statCards = [
+        { label: 'Total COP', value: totalCop, icon: 'fa-file-lines', color: 'blue' },
+        { label: 'Conformes', value: conformes, icon: 'fa-check-circle', color: 'emerald' },
+        { label: 'Non Conformes', value: nonConformes, icon: 'fa-times-circle', color: 'rose' },
+        { label: 'Non Effectués', value: nonEffectues, icon: 'fa-minus-circle', color: 'purple' },
+        { label: 'Taux Conformité', value: `${rate}%`, icon: 'fa-percent', color: 'cyan' },
+      ];
+
+      const getColorClasses = (color) => {
+        const colors = {
+          blue: 'border-blue-200 dark:border-blue-900/30 text-blue-600 dark:text-blue-400',
+          emerald: 'border-emerald-200 dark:border-emerald-900/30 text-emerald-600 dark:text-emerald-400',
+          rose: 'border-rose-200 dark:border-rose-900/30 text-rose-600 dark:text-rose-400',
+          purple: 'border-purple-200 dark:border-purple-900/30 text-purple-600 dark:text-purple-400',
+          cyan: 'border-cyan-200 dark:border-cyan-900/30 text-cyan-600 dark:text-cyan-400',
+        };
+        return colors[color] || colors.blue;
+      };
+
+      return (
+        <div className="space-y-6 fade-in">
+          <div className="glass-card rounded-3xl p-6 shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center text-2xl">
+                <i className="fas fa-chart-pie text-blue-500"></i>
+              </div>
+              <div>
+                <h1 className="text-2xl font-extrabold">Tableau de bord</h1>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  <i className="fas fa-sync-alt fa-fw text-slate-400 text-[10px]"></i> Supervision globale de la qualité d'installation FTTH
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            {statCards.map((card, index) => (
+              <div key={index} className={`stat-card glass-card rounded-2xl p-5 border ${getColorClasses(card.color)}`}>
+                <div className="icon-bg"><i className={`fas ${card.icon}`}></i></div>
+                <div className="relative z-10">
+                  <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{card.label}</span>
+                  <h3 className="text-3xl font-extrabold mt-1 font-mono">{card.value}</h3>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="glass-card rounded-3xl p-6 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <i className="fas fa-building text-blue-500"></i>
+              <h2 className="font-extrabold text-base">Répartition par Prestataire</h2>
+            </div>
+            <div className="space-y-3">
+              {Object.entries(stats).map(([name, s]) => {
+                const okPct = s.total > 0 ? Math.round((s.ok / s.total) * 100) : 100;
+                const nokPct = s.total > 0 ? Math.round((s.nok / s.total) * 100) : 0;
+                const nePct = s.total > 0 ? Math.round((s.nonEffectue / s.total) * 100) : 0;
+                return (
+                  <div key={name} className="p-3 bg-slate-50/50 dark:bg-slate-800/30 rounded-2xl space-y-1.5 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors">
+                    <div className="flex justify-between text-xs font-bold">
+                      <span className="flex items-center gap-2">
+                        <i className="fas fa-circle text-blue-500 text-[6px]"></i>
+                        {name}
+                      </span>
+                      <span className="font-mono text-slate-500 dark:text-slate-400">
+                        {s.ok} OK / {s.nok} NOK / {s.nonEffectue} --- ({s.total} total)
+                      </span>
+                    </div>
+                    <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden flex">
+                      <div style={{ width: `${okPct}%` }} className="bg-emerald-500 h-full transition-all duration-500"></div>
+                      <div style={{ width: `${nokPct}%` }} className="bg-rose-500 h-full transition-all duration-500"></div>
+                      <div style={{ width: `${nePct}%` }} className="bg-violet-500 h-full transition-all duration-500"></div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // --- COP FORM VIEW ---
+    function CopFormView({ currentUser, onSuccess }) {
+      const [numeroDossier, setNumeroDossier] = useState('');
+      const [nomClient, setNomClient] = useState('');
+      const [contact, setContact] = useState('');
+      const [prestataire, setPrestataire] = useState('');
+      const [localite, setLocalite] = useState('');
+      const [dateControle] = useState(new Date().toISOString().split('T')[0]);
+      const [technicien, setTechnicien] = useState(`${currentUser.prenom} ${currentUser.nom}`);
+      const [conforme, setConforme] = useState(true);
+      const [nonConformites, setNonConformites] = useState(['AUCUN']);
+      const [gravite, setGravite] = useState('Aucune');
+      const [commentaire, setCommentaire] = useState('');
+      const [foundNotice, setFoundNotice] = useState(null);
+      const [showSuccessModal, setShowSuccessModal] = useState(false);
+      const [clientInfo, setClientInfo] = useState(null);
+      const [prestataireLocked, setPrestataireLocked] = useState(true);
+      const [isSubmitting, setIsSubmitting] = useState(false);
+      const [isPreFilled, setIsPreFilled] = useState(false);
+
+      const prestataires = storageService.getPrestataires();
+
+      useEffect(() => {
+        const prefillDossier = localStorage.getItem(STORAGE_KEYS.PREFILL_DOSSIER);
+        if (prefillDossier) {
+          const c = storageService.getClientByNumeroDossier(prefillDossier);
+          if (c) {
+            setNumeroDossier(c.numeroDossier);
+            setNomClient(c.nomClient);
+            setContact(c.contact || '');
+            setPrestataire(c.prestataire);
+            setLocalite(c.localite);
+            setPrestataireLocked(true);
+            setClientInfo({
+              contact: c.contact || '',
+              type: c.type || '',
+              dateActivation: c.dateActivation || '',
+              gpsClient: c.gpsClient || '',
+              gpsFat: c.gpsFat || '',
+              equipement: c.equipement || '',
+            });
+            setFoundNotice(`📋 Client "${c.nomClient}" pré-chargé depuis la liste des clients programmés.`);
+            setIsPreFilled(true);
+          }
+          localStorage.removeItem(STORAGE_KEYS.PREFILL_DOSSIER);
+        }
+      }, []);
+
+      const handleDossierSearch = (val) => {
+        setNumeroDossier(val);
+        setIsPreFilled(false);
+        if (!val.trim()) { setFoundNotice(null); setClientInfo(null); setPrestataireLocked(true); return; }
+        const c = storageService.getClientByNumeroDossier(val);
+        if (c) {
+          setNomClient(c.nomClient);
+          setContact(c.contact || '');
+          setPrestataire(c.prestataire);
+          setLocalite(c.localite);
+          setPrestataireLocked(true);
+          setClientInfo({
+            contact: c.contact || '',
+            type: c.type || '',
+            dateActivation: c.dateActivation || '',
+            gpsClient: c.gpsClient || '',
+            gpsFat: c.gpsFat || '',
+            equipement: c.equipement || '',
+          });
+          setFoundNotice(`Client "${c.nomClient}" identifié automatiquement.`);
+        } else {
+          setFoundNotice(null);
+          setClientInfo(null);
+          setPrestataireLocked(false);
+        }
+      };
+
+      const handleNonConformiteToggle = (item) => {
+        if (item === 'AUCUN') { setNonConformites(['AUCUN']); setConforme(true); setGravite('Aucune'); }
+        else if (item === 'COP NON EFFECTUE') { setNonConformites(['COP NON EFFECTUE']); setConforme(false); setGravite('Aucune'); }
+        else {
+          let updated = nonConformites.filter(n => n !== 'AUCUN' && n !== 'COP NON EFFECTUE');
+          if (updated.includes(item)) updated = updated.filter(n => n !== item);
+          else updated.push(item);
+          if (updated.length === 0) { setNonConformites(['AUCUN']); setConforme(true); setGravite('Aucune'); }
+          else { setNonConformites(updated); setConforme(false); if (gravite === 'Aucune') setGravite('Majeure'); }
+        }
+      };
+
+      const handleReset = () => {
+        setNumeroDossier(''); setNomClient(''); setContact(''); setPrestataire(''); setLocalite('');
+        setTechnicien(`${currentUser.prenom} ${currentUser.nom}`);
+        setConforme(true); setNonConformites(['AUCUN']); setGravite('Aucune');
+        setCommentaire(''); setFoundNotice(null); setClientInfo(null); setPrestataireLocked(true);
+        setIsPreFilled(false);
+      };
+
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        const wordCount = commentaire.trim() ? commentaire.trim().split(/\s+/).length : 0;
+        if (wordCount > 300) { alert('Commentaire limité à 300 mots max.'); setIsSubmitting(false); return; }
+        if (!prestataire) { alert('Veuillez sélectionner un prestataire.'); setIsSubmitting(false); return; }
+
+        const isNonEffectue = nonConformites.includes('COP NON EFFECTUE');
+        const newControle = {
+          numeroDossier, nomClient, prestataire, localite, gpsClient: '', dateControle, technicien,
+          conforme: isNonEffectue ? false : conforme,
+          nonConformites,
+          gravite: isNonEffectue ? 'Aucune' : (conforme ? 'Aucune' : gravite),
+          commentaire, responsableAction: '',
+          cop: isNonEffectue ? '---' : (conforme ? 'OK' : 'NOK'),
+        };
+        const saved = storageService.addControle(newControle);
+        if (!isNonEffectue) storageService.markClientCopEffectue(numeroDossier, technicien);
+        setShowSuccessModal(true);
+        setIsSubmitting(false);
+      };
+
+      const getNonConformiteClass = (item, sel) => {
+        if (!sel) return 'bg-slate-50/50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-700 hover:bg-slate-100/50 dark:hover:bg-slate-800/50';
+        if (item === 'AUCUN') return 'bg-emerald-50 border-emerald-500 text-emerald-700 dark:bg-emerald-950/30 dark:border-emerald-500 dark:text-emerald-300 shadow-[0_0_20px_rgba(52,211,153,0.15)]';
+        if (item === 'COP NON EFFECTUE') return 'bg-violet-50 border-violet-500 text-violet-700 dark:bg-violet-950/30 dark:border-violet-500 dark:text-violet-300 shadow-[0_0_20px_rgba(139,92,246,0.15)]';
+        return 'bg-rose-50 border-rose-500 text-rose-700 dark:bg-rose-950/30 dark:border-rose-500 dark:text-rose-300 shadow-[0_0_20px_rgba(239,68,68,0.15)]';
+      };
+
+      return (
+        <div className="max-w-4xl mx-auto space-y-6 fade-in">
+          <div className={`glass-card rounded-3xl p-6 shadow-sm border ${isPreFilled ? 'border-emerald-200 dark:border-emerald-900/30' : 'border-blue-200 dark:border-blue-900/30'}`}>
+            <div className="flex items-center gap-4">
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl ${isPreFilled ? 'bg-emerald-500/20 text-emerald-500' : 'bg-blue-500/20 text-blue-500'}`}>
+                <i className={`fas ${isPreFilled ? 'fa-arrow-right-to-bracket' : 'fa-pen-to-square'}`}></i>
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h1 className="text-2xl font-extrabold">Nouveau COP</h1>
+                  {isPreFilled && (
+                    <span className="text-xs font-semibold bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-3 py-1 rounded-full">
+                      <i className="fas fa-check mr-1"></i> Pré-rempli
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  {isPreFilled ? 'Dossier pré-chargé — complétez et validez' : 'Recherche automatique par N° de Dossier'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="glass-card rounded-3xl p-6 shadow-sm space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold mb-1.5 text-slate-600 dark:text-slate-400">
+                  <i className="fas fa-hashtag mr-1.5"></i> N° Dossier / Ligne *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={numeroDossier}
+                  onChange={e => handleDossierSearch(e.target.value)}
+                  placeholder="Ex: 12345"
+                  className="input-modern w-full px-4 py-2.5 rounded-xl font-mono font-bold text-sm"
+                />
+                {foundNotice && (
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold mt-1.5 fade-in">
+                    <i className="fas fa-check-circle mr-1"></i> {foundNotice}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="block text-xs font-bold mb-1.5 text-slate-600 dark:text-slate-400">
+                  <i className="fas fa-user mr-1.5"></i> Client *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={nomClient}
+                  onChange={e => setNomClient(e.target.value)}
+                  className="input-modern w-full px-4 py-2.5 rounded-xl text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold mb-1.5 text-slate-600 dark:text-slate-400">
+                  <i className="fas fa-building mr-1.5"></i> PRESTATAIRE *
+                </label>
+                <select
+                  required
+                  disabled={prestataireLocked && !!clientInfo}
+                  value={prestataire}
+                  onChange={e => setPrestataire(e.target.value)}
+                  className={`input-modern w-full px-4 py-2.5 rounded-xl text-sm ${prestataireLocked && clientInfo ? 'opacity-70 cursor-not-allowed' : ''}`}
+                >
+                  <option value="">-- Sélectionner --</option>
+                  {prestataires.map(p => <option key={p.id} value={p.nom}>{p.nom}</option>)}
+                </select>
+                {prestataireLocked && clientInfo && (
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    <i className="fas fa-info-circle mr-1"></i> Récupéré automatiquement
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="block text-xs font-bold mb-1.5 text-slate-600 dark:text-slate-400">
+                  <i className="fas fa-location-dot mr-1.5"></i> LOCALITE *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={localite}
+                  onChange={e => setLocalite(e.target.value)}
+                  className="input-modern w-full px-4 py-2.5 rounded-xl text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold mb-1.5 text-slate-600 dark:text-slate-400">
+                  <i className="fas fa-user-gear mr-1.5"></i> Technicien COP *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={technicien}
+                  onChange={e => setTechnicien(e.target.value)}
+                  className="input-modern w-full px-4 py-2.5 rounded-xl text-sm font-bold bg-blue-50/50 dark:bg-blue-950/20"
+                />
+              </div>
+            </div>
+
+            {clientInfo && (
+              <div className="p-4 rounded-2xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 space-y-3 fade-in">
+                <div className="flex items-center gap-2 text-xs font-extrabold text-blue-700 dark:text-blue-300">
+                  <i className="fas fa-database"></i>
+                  <span>Informations client (base de données)</span>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                  <div>
+                    <span className="block text-slate-500 font-semibold mb-0.5">
+                      <i className="fas fa-phone mr-1"></i> Contact
+                    </span>
+                    <span className="font-bold">{clientInfo.contact || <span className="text-slate-400 italic">Non renseigné</span>}</span>
+                  </div>
+                  <div>
+                    <span className="block text-slate-500 font-semibold mb-0.5">
+                      <i className="fas fa-tag mr-1"></i> Type
+                    </span>
+                    <span className="font-bold">{clientInfo.type || <span className="text-slate-400 italic">Non renseigné</span>}</span>
+                  </div>
+                  <div>
+                    <span className="block text-slate-500 font-semibold mb-0.5">
+                      <i className="fas fa-calendar mr-1"></i> Activation
+                    </span>
+                    <span className="font-bold">{clientInfo.dateActivation || <span className="text-slate-400 italic">Non renseignée</span>}</span>
+                  </div>
+                  <div>
+                    <span className="block text-slate-500 font-semibold mb-0.5">
+                      <i className="fas fa-server mr-1"></i> Équipement
+                    </span>
+                    <span className="font-bold">{clientInfo.equipement || <span className="text-slate-400 italic">Non renseigné</span>}</span>
+                  </div>
+                  <div>
+                    <span className="block text-slate-500 font-semibold mb-0.5">
+                      <i className="fas fa-map-pin mr-1"></i> GPS Client
+                    </span>
+                    {clientInfo.gpsClient ? (
+                      <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(clientInfo.gpsClient)}`} target="_blank" rel="noopener noreferrer" className="font-bold text-blue-600 hover:underline">
+                        <i className="fas fa-external-link-alt mr-1 text-[10px]"></i> {clientInfo.gpsClient}
+                      </a>
+                    ) : <span className="text-slate-400 italic">Non renseigné</span>}
+                  </div>
+                  <div>
+                    <span className="block text-slate-500 font-semibold mb-0.5">
+                      <i className="fas fa-map-pin mr-1"></i> GPS FAT
+                    </span>
+                    {clientInfo.gpsFat ? (
+                      <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(clientInfo.gpsFat)}`} target="_blank" rel="noopener noreferrer" className="font-bold text-blue-600 hover:underline">
+                        <i className="fas fa-external-link-alt mr-1 text-[10px]"></i> {clientInfo.gpsFat}
+                      </a>
+                    ) : <span className="text-slate-400 italic">Non renseigné</span>}
+                  </div>
+                </div>
+                <p className="text-[10px] text-slate-400">
+                  <i className="fas fa-info-circle mr-1"></i> Informations indicatives — modifiables dans la fiche client
+                </p>
+              </div>
+            )}
+
+            <div className="pt-4 border-t border-slate-200 dark:border-slate-700/50 space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="font-extrabold text-sm flex items-center gap-2">
+                  <i className="fas fa-triangle-exclamation text-amber-500"></i>
+                  Types de Non-conformités
+                </h3>
+                <span className={`px-3 py-1.5 rounded-full text-xs font-extrabold ${nonConformites.includes('COP NON EFFECTUE') ? 'bg-violet-100 text-violet-700 dark:bg-violet-950/30 dark:text-violet-300' : (conforme ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-950/30 dark:text-rose-300')}`}>
+                  <i className={`fas ${nonConformites.includes('COP NON EFFECTUE') ? 'fa-minus' : (conforme ? 'fa-check' : 'fa-times')} mr-1.5`}></i>
+                  COP : {nonConformites.includes('COP NON EFFECTUE') ? '--- (NON EFFECTUÉ)' : (conforme ? 'OK (CONFORME)' : 'NOK (NON CONFORME)')}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                {['AUCUN', 'MANQUE DE POTEAUX', 'TIRAGE MAL EFFECTUÉ', 'POTEAUX NON ARMÉ', 'INSTALLATION MAL EFFECTUÉE', 'GPS CLIENT ERRONÉ', 'SURPLUS DE CÂBLE', 'DEPASSEMENT LINEAIRE', 'COMBINE NON DÉPOSÉ', 'COP NON EFFECTUE', 'AUTRE'].map(item => {
+                  const sel = nonConformites.includes(item);
+                  return (
+                    <label
+                      key={item}
+                      onClick={() => handleNonConformiteToggle(item)}
+                      className={`p-3 rounded-xl border cursor-pointer text-xs font-bold flex items-center space-x-2 transition-all hover:scale-[1.02] ${getNonConformiteClass(item, sel)}`}
+                    >
+                      <input type="checkbox" checked={sel} readOnly className="cursor-pointer accent-blue-600" />
+                      <span>{item}</span>
+                    </label>
+                  );
+                })}
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold mb-1.5 text-slate-600 dark:text-slate-400">
+                  <i className="fas fa-comment mr-1.5"></i> Commentaire (Max 300 mots)
+                </label>
+                <textarea
+                  rows="3"
+                  value={commentaire}
+                  onChange={e => setCommentaire(e.target.value)}
+                  className="input-modern w-full p-3 rounded-xl text-sm resize-none"
+                  placeholder="Saisissez vos observations terrain..."
+                ></textarea>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200 dark:border-slate-700/50">
+              <button
+                type="button"
+                onClick={handleReset}
+                className="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+              >
+                <i className="fas fa-undo mr-2"></i> ANNULER
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className={`px-6 py-2.5 rounded-xl btn-primary text-white font-extrabold text-xs shadow-lg hover:shadow-xl ${isSubmitting ? 'btn-loading opacity-70' : 'hover:scale-[1.02]'}`}
+              >
+                {isSubmitting ? (
+                  <span><i className="fas fa-spinner fa-spin mr-2"></i> ENVOI...</span>
+                ) : (
+                  <span><i className="fas fa-check mr-2"></i> VALIDER LE CONTRÔLE</span>
+                )}
+              </button>
+            </div>
+          </form>
+
+          {showSuccessModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm fade-in">
+              <div className="glass-card rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl scale-in">
+                <div className="w-20 h-20 mx-auto rounded-2xl bg-emerald-500/20 flex items-center justify-center text-4xl text-emerald-500">
+                  <i className="fas fa-check-circle"></i>
+                </div>
+                <h3 className="text-2xl font-extrabold mt-4">Contrôle Enregistré !</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Le dossier <span className="font-mono font-bold">#{numeroDossier}</span> a été validé avec succès.
+                </p>
+                <button
+                  onClick={() => { setShowSuccessModal(false); handleReset(); onSuccess(); }}
+                  className="mt-6 w-full py-3 rounded-xl btn-primary text-white font-bold text-xs shadow-lg hover:shadow-xl transition-all hover:scale-[1.02]"
+                >
+                  <i className="fas fa-check mr-2"></i> FERMER
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // --- COP HISTORY VIEW ---
+    function CopHistoryView({ currentUser }) {
+      const isAdmin = currentUser.role === 'ADMIN';
+      const [filters, setFilters] = useState({ dateDebut: '', dateFin: '', prestataire: 'TOUS', conforme: 'TOUS', searchQuery: '' });
+      const prestataires = storageService.getPrestataires();
+      const list = useMemo(() => storageService.filterControles(filters), [filters]);
+
+      return (
+        <div className="space-y-6 fade-in">
+          <div className="glass-card rounded-3xl p-6 shadow-sm border border-blue-200 dark:border-blue-900/30">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-blue-500/20 flex items-center justify-center text-2xl text-blue-500">
+                  <i className="fas fa-list-check"></i>
+                </div>
+                <div>
+                  <h1 className="text-2xl font-extrabold">Liste des COP</h1>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    <i className="fas fa-file-lines mr-1"></i> {list.length} dossiers affichés
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button onClick={() => exportService.exportToExcel(list)} className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 transition-all hover:scale-[1.02] shadow-lg">
+                  <i className="fas fa-file-excel mr-1.5"></i> Excel
+                </button>
+                <button onClick={() => exportService.exportToCSV(list)} className="px-4 py-2 rounded-xl bg-blue-600 text-white font-bold text-xs hover:bg-blue-700 transition-all hover:scale-[1.02] shadow-lg">
+                  <i className="fas fa-file-csv mr-1.5"></i> CSV
+                </button>
+                <button onClick={() => exportService.exportToPDF(list)} className="px-4 py-2 rounded-xl bg-rose-600 text-white font-bold text-xs hover:bg-rose-700 transition-all hover:scale-[1.02] shadow-lg">
+                  <i className="fas fa-file-pdf mr-1.5"></i> PDF
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="glass-card rounded-3xl p-4 shadow-sm grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+            <div className="relative">
+              <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <input
+                type="text"
+                placeholder="Recherche dossier, client..."
+                value={filters.searchQuery}
+                onChange={e => setFilters({ ...filters, searchQuery: e.target.value })}
+                className="input-modern w-full pl-9 pr-3 py-2 rounded-xl text-sm"
+              />
+            </div>
+            <input
+              type="date"
+              value={filters.dateDebut}
+              onChange={e => setFilters({ ...filters, dateDebut: e.target.value })}
+              className="input-modern w-full px-3 py-2 rounded-xl text-sm"
+            />
+            <input
+              type="date"
+              value={filters.dateFin}
+              onChange={e => setFilters({ ...filters, dateFin: e.target.value })}
+              className="input-modern w-full px-3 py-2 rounded-xl text-sm"
+            />
+            <select
+              value={filters.prestataire}
+              onChange={e => setFilters({ ...filters, prestataire: e.target.value })}
+              className="input-modern w-full px-3 py-2 rounded-xl text-sm"
+            >
+              <option value="TOUS">Tous Prestataires</option>
+              {prestataires.map(p => <option key={p.id} value={p.nom}>{p.nom}</option>)}
+            </select>
+          </div>
+
+          <div className="glass-card rounded-3xl shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="table-modern w-full text-left text-xs">
+                <thead className="border-b border-slate-200 dark:border-slate-700">
+                  <tr>
+                    <th className="p-3 font-extrabold uppercase tracking-wider"><i className="fas fa-calendar mr-1.5"></i>Date</th>
+                    <th className="p-3 font-extrabold uppercase tracking-wider"><i className="fas fa-hashtag mr-1.5"></i>Dossier</th>
+                    <th className="p-3 font-extrabold uppercase tracking-wider"><i className="fas fa-user mr-1.5"></i>Client</th>
+                    <th className="p-3 font-extrabold uppercase tracking-wider"><i className="fas fa-building mr-1.5"></i>Prestataire</th>
+                    <th className="p-3 font-extrabold uppercase tracking-wider"><i className="fas fa-check mr-1.5"></i>Conforme</th>
+                    <th className="p-3 font-extrabold uppercase tracking-wider"><i className="fas fa-user-gear mr-1.5"></i>Technicien</th>
+                    {isAdmin && <th className="p-3 text-right font-extrabold uppercase tracking-wider"><i className="fas fa-trash-can mr-1.5"></i>Action</th>}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {list.map(item => (
+                    <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                      <td className="p-3 font-mono">{item.dateControle}</td>
+                      <td className="p-3 font-mono font-bold text-blue-600 dark:text-blue-400">{item.numeroDossier}</td>
+                      <td className="p-3 font-bold">{item.nomClient}</td>
+                      <td className="p-3">{item.prestataire}</td>
+                      <td className="p-3">
+                        {item.cop === '---' ? (
+                          <span className="status-badge purple">
+                            <i className="fas fa-minus mr-1"></i> ---
+                          </span>
+                        ) : (
+                          <span className={`status-badge ${item.conforme ? 'success' : 'error'}`}>
+                            <i className={`fas ${item.conforme ? 'fa-check' : 'fa-times'} mr-1`}></i>
+                            {item.conforme ? 'OK' : 'NOK'}
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-3">{item.technicien}</td>
+                      {isAdmin && (
+                        <td className="p-3 text-right">
+                          <button
+                            onClick={() => { if (confirm('Supprimer ce contrôle ?')) { storageService.deleteControle(item.id); setFilters({ ...filters }); } }}
+                            className="text-rose-600 hover:text-rose-800 font-bold transition-colors"
+                          >
+                            <i className="fas fa-trash-can"></i>
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // --- CLIENT IMPORT VIEW (Design amélioré) ---
+    function ClientImportView({ currentUser }) {
+      const [clients, setClients] = useState(storageService.getClients());
+      const [query, setQuery] = useState('');
+      const [sourceFilter, setSourceFilter] = useState('TOUS');
+      const [importing, setImporting] = useState(false);
+      const isAdmin = currentUser.role === 'ADMIN';
+      const currentTechName = `${currentUser.prenom} ${currentUser.nom}`.trim().toLowerCase();
+
+      const visibleClients = useMemo(() => {
+        if (isAdmin) return clients;
+        return clients.filter(c => (c.technicienCop || '').trim().toLowerCase() === currentTechName);
+      }, [clients, isAdmin, currentTechName]);
+
+      const sources = useMemo(() => {
+        const set = new Set(visibleClients.map(c => c.source).filter(Boolean));
+        return ['TOUS', ...Array.from(set)];
+      }, [visibleClients]);
+
+      const filtered = useMemo(() => {
+        return visibleClients.filter(c => {
+          if (sourceFilter !== 'TOUS' && c.source !== sourceFilter) return false;
+          if (query.trim()) {
+            const q = query.trim().toLowerCase();
+            return c.nomClient.toLowerCase().includes(q) || c.numeroDossier.toLowerCase().includes(q) || c.prestataire.toLowerCase().includes(q) || c.localite.toLowerCase().includes(q);
+          }
+          return true;
+        });
+      }, [visibleClients, query, sourceFilter]);
+
+      const navigateToCopForm = (dossier) => {
+        localStorage.setItem(STORAGE_KEYS.PREFILL_DOSSIER, dossier);
+        window.dispatchEvent(new CustomEvent('navigateToCopForm', { detail: { dossier } }));
+      };
+
+      const statsByPrestataire = useMemo(() => {
+        const map = new Map();
+        visibleClients.forEach(c => {
+          const key = c.prestataire || 'Non défini';
+          if (!map.has(key)) map.set(key, { total: 0, effectues: 0 });
+          const entry = map.get(key);
+          entry.total += 1;
+          if (c.copEffectue === 'OUI') entry.effectues += 1;
+        });
+        return Array.from(map.entries()).map(([prestataire, v]) => ({ prestataire, ...v, restants: v.total - v.effectues, pct: v.total ? Math.round((v.effectues / v.total) * 100) : 0 })).sort((a, b) => b.total - a.total);
+      }, [visibleClients]);
+
+      const globalStats = useMemo(() => {
+        const total = visibleClients.length;
+        const effectues = visibleClients.filter(c => c.copEffectue === 'OUI').length;
+        return { total, effectues, restants: total - effectues, pct: total ? Math.round((effectues / total) * 100) : 0 };
+      }, [visibleClients]);
+
+      const handleFile = async (e) => {
+        const f = e.target.files?.[0];
+        if (!f) return;
+        setImporting(true);
+        try {
+          const buffer = await f.arrayBuffer();
+          const workbook = XLSX.read(buffer, { type: 'array' });
+          const sheet = workbook.Sheets[workbook.SheetNames[0]];
+          const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: '' });
+          const items = [];
+          for (let i = 1; i < rows.length; i++) {
+            const p = rows[i];
+            if (!p || !p.length) continue;
+            const numeroDossier = String(p[0] || '').trim();
+            if (!numeroDossier) continue;
+            items.push({
+              numeroDossier,
+              nomClient: String(p[1] || 'Inconnu').trim(),
+              contact: String(p[2] || '').trim(),
+              prestataire: String(p[3] || 'CELTIIS').trim(),
+              dateAffectation: String(p[4] || '').trim(),
+              dateActivation: String(p[5] || '').trim(),
+              copEffectue: String(p[6] || 'NON').trim().toUpperCase() === 'OUI' ? 'OUI' : 'NON',
+              technicienCop: String(p[7] || '').trim(),
+              localite: String(p[8] || '').trim(),
+              equipement: String(p[9] || '').trim(),
+              gpsClient: String(p[10] || '').trim(),
+              gpsFat: String(p[11] || '').trim(),
+              type: String(p[12] || '').trim(),
+            });
+          }
+          if (!items.length) { alert("Aucun client valide trouvé dans le fichier."); return; }
+          storageService.importClientsList(items, f.name.replace(/\.(csv|xlsx|xls)$/i, ''));
+          setClients(storageService.getClients());
+          alert(`${items.length} client(s) importé(s) avec succès depuis "${f.name}" !`);
+        } catch (err) { console.error('Erreur import clients:', err); alert("Erreur lors de la lecture du fichier."); }
+        finally { setImporting(false); e.target.value = ''; }
+      };
+
+      const [editingCell, setEditingCell] = useState(null);
+      const [fieldDraft, setFieldDraft] = useState('');
+
+      const startEditField = (item, field) => {
+        if (!isAdmin) return;
+        setEditingCell({ id: item.id, field });
+        setFieldDraft(item[field] || '');
+      };
+
+      const saveField = (item, field) => {
+        if (!isAdmin) return;
+        const value = fieldDraft.trim();
+        if ((field === 'gpsClient' || field === 'gpsFat') && value && !/^-?\d{1,3}(\.\d+)?\s*,\s*-?\d{1,3}(\.\d+)?$/.test(value)) {
+          alert('Format GPS invalide. Utilisez le format "latitude, longitude" (ex: 6.3703, 2.3912).');
+          return;
+        }
+        storageService.updateClientField(item.id, field, value);
+        setClients(storageService.getClients());
+        setEditingCell(null);
+      };
+
+      const GpsCell = ({ item, field }) => {
+        const isEditing = editingCell && editingCell.id === item.id && editingCell.field === field;
+        const value = item[field];
+        if (isEditing) {
+          return (
+            <div className="flex items-center gap-1">
+              <input
+                type="text"
+                autoFocus
+                value={fieldDraft}
+                placeholder="lat, lng"
+                onChange={e => setFieldDraft(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') saveField(item, field); if (e.key === 'Escape') setEditingCell(null); }}
+                className="input-modern p-1 border rounded-lg w-32 font-mono text-[11px]"
+              />
+              <button onClick={() => saveField(item, field)} className="text-emerald-600 font-bold hover:scale-110 transition-transform"><i className="fas fa-check"></i></button>
+              <button onClick={() => setEditingCell(null)} className="text-slate-400 font-bold hover:scale-110 transition-transform"><i className="fas fa-times"></i></button>
+            </div>
+          );
+        }
+        return (
+          <div className="flex items-center gap-2">
+            {value ? (
+              <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(value)}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1 transition-colors">
+                <i className="fas fa-map-pin"></i> {value}
+              </a>
+            ) : (
+              <button onClick={() => startEditField(item, field)} className="text-amber-600 italic hover:underline transition-colors text-[11px]">
+                <i className="fas fa-plus-circle mr-1"></i> Ajouter
+              </button>
+            )}
+            {value && isAdmin && (
+              <button onClick={() => startEditField(item, field)} className="text-slate-400 hover:text-blue-600 transition-colors text-[11px]" title="Modifier">
+                <i className="fas fa-edit"></i>
+              </button>
+            )}
+          </div>
+        );
+      };
+
+      return (
+        <div className="space-y-6 fade-in">
+          <div className="glass-card rounded-3xl p-6 shadow-sm border border-emerald-200 dark:border-emerald-900/30">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-2xl text-emerald-500">
+                  <i className="fas fa-users"></i>
+                </div>
+                <div>
+                  <h1 className="text-2xl font-extrabold">Clients Programmés</h1>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    {isAdmin ? 'Gestion complète des clients' : 'Consultation de vos affectations'}
+                    {!isAdmin && <span className="ml-2 text-blue-600 font-semibold">💡 Cliquez sur un N° Dossier pour créer un COP</span>}
+                  </p>
+                </div>
+              </div>
+              <span className="font-mono text-xs font-bold bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 px-3 py-1.5 rounded-xl">
+                <i className="fas fa-users mr-1.5"></i> {visibleClients.length} Clients
+              </span>
+            </div>
+          </div>
+
+          {isAdmin && (
+            <div className="glass-card rounded-3xl p-6 shadow-sm border border-dashed border-blue-300 dark:border-blue-700/50">
+              <div className="flex flex-col items-center justify-center gap-3">
+                <label className={`px-6 py-3 rounded-xl text-sm font-bold cursor-pointer inline-block text-white transition-all ${importing ? 'bg-slate-400 pointer-events-none' : 'btn-primary hover:scale-[1.02] shadow-lg'}`}>
+                  {importing ? (
+                    <span><i className="fas fa-spinner fa-spin mr-2"></i> Import en cours...</span>
+                  ) : (
+                    <span><i className="fas fa-upload mr-2"></i> Téléverser un fichier clients</span>
+                  )}
+                  <input type="file" accept=".csv,.xlsx,.xls" onChange={handleFile} disabled={importing} className="hidden" />
+                </label>
+                <p className="text-[11px] text-slate-400 text-center max-w-xl">
+                  <i className="fas fa-info-circle mr-1"></i>
+                  Colonnes attendues : N° Dossier, Client, Contact, Prestataire, Date d'Affectation, Date d'Activation, COP Effectué (OUI/NON), Technicien COP, Localité, Équipement, GPS Client, GPS FAT, Type.
+                </p>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="glass-card rounded-3xl p-5 shadow-sm">
+              <h3 className="font-extrabold text-sm flex items-center gap-2">
+                <i className="fas fa-globe text-blue-500"></i> Global
+              </h3>
+              <div className="mt-3 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-500 font-semibold">COP Effectués</span>
+                  <span className="font-extrabold text-emerald-600">{globalStats.effectues} / {globalStats.total}</span>
+                </div>
+                <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-emerald-500 transition-all duration-500 rounded-full" style={{ width: `${globalStats.pct}%` }}></div>
+                </div>
+                <div className="flex items-center justify-between text-[11px] text-slate-400">
+                  <span>{globalStats.pct}% effectués</span>
+                  <span>{globalStats.restants} restants</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="glass-card rounded-3xl p-5 shadow-sm">
+              <h3 className="font-extrabold text-sm flex items-center gap-2">
+                <i className="fas fa-building text-blue-500"></i> Par Prestataire
+              </h3>
+              <div className="mt-3 space-y-2 max-h-48 overflow-y-auto pr-1">
+                {statsByPrestataire.map(s => (
+                  <div key={s.prestataire} className="text-xs">
+                    <div className="flex justify-between font-semibold">
+                      <span>{s.prestataire}</span>
+                      <span className="font-mono">{s.effectues}/{s.total}</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden mt-1">
+                      <div className="h-full bg-blue-500 transition-all duration-500 rounded-full" style={{ width: `${s.pct}%` }}></div>
+                    </div>
+                  </div>
+                ))}
+                {!statsByPrestataire.length && <p className="text-xs text-slate-400">Aucune donnée.</p>}
+              </div>
+            </div>
+          </div>
+
+          <div className="glass-card rounded-3xl p-6 shadow-sm overflow-hidden">
+            <h3 className="font-extrabold text-base mb-4 flex items-center gap-2">
+              <i className="fas fa-table text-blue-500"></i>
+              Visualisation des Clients ({filtered.length})
+            </h3>
+            <div className="flex flex-col sm:flex-row gap-3 mb-4 text-xs">
+              <div className="relative flex-1">
+                <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input
+                  type="text"
+                  placeholder="Rechercher un client, N° dossier..."
+                  value={query}
+                  onChange={e => setQuery(e.target.value)}
+                  className="input-modern w-full pl-9 pr-3 py-2 rounded-xl text-sm"
+                />
+              </div>
+              <select
+                value={sourceFilter}
+                onChange={e => setSourceFilter(e.target.value)}
+                className="input-modern px-3 py-2 rounded-xl text-sm min-w-[180px]"
+              >
+                {sources.map(s => <option key={s} value={s}>{s === 'TOUS' ? 'Toutes les sources' : s}</option>)}
+              </select>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="table-modern w-full text-left text-xs border-collapse whitespace-nowrap">
+                <thead className="border-b border-slate-200 dark:border-slate-700">
+                  <tr>
+                    <th className="p-3 font-extrabold uppercase tracking-wider"><i className="fas fa-hashtag mr-1.5"></i>N° Dossier</th>
+                    <th className="p-3 font-extrabold uppercase tracking-wider"><i className="fas fa-user mr-1.5"></i>Client</th>
+                    <th className="p-3 font-extrabold uppercase tracking-wider"><i className="fas fa-phone mr-1.5"></i>Contact</th>
+                    <th className="p-3 font-extrabold uppercase tracking-wider"><i className="fas fa-building mr-1.5"></i>Prestataire</th>
+                    <th className="p-3 font-extrabold uppercase tracking-wider"><i className="fas fa-calendar mr-1.5"></i>Affectation</th>
+                    <th className="p-3 font-extrabold uppercase tracking-wider"><i className="fas fa-calendar-check mr-1.5"></i>Activation</th>
+                    <th className="p-3 font-extrabold uppercase tracking-wider"><i className="fas fa-check-circle mr-1.5"></i>COP</th>
+                    <th className="p-3 font-extrabold uppercase tracking-wider"><i className="fas fa-user-gear mr-1.5"></i>Technicien</th>
+                    <th className="p-3 font-extrabold uppercase tracking-wider"><i className="fas fa-location-dot mr-1.5"></i>Localité</th>
+                    <th className="p-3 font-extrabold uppercase tracking-wider"><i className="fas fa-server mr-1.5"></i>Équipement</th>
+                    <th className="p-3 font-extrabold uppercase tracking-wider"><i className="fas fa-map-pin mr-1.5"></i>GPS Client</th>
+                    <th className="p-3 font-extrabold uppercase tracking-wider"><i className="fas fa-map-pin mr-1.5"></i>GPS FAT</th>
+                    <th className="p-3 font-extrabold uppercase tracking-wider"><i className="fas fa-tag mr-1.5"></i>Type</th>
+                    {isAdmin && <th className="p-3 font-extrabold uppercase tracking-wider"><i className="fas fa-tag mr-1.5"></i>Source</th>}
+                    {isAdmin && <th className="p-3 font-extrabold uppercase tracking-wider"><i className="fas fa-trash-can mr-1.5"></i>Action</th>}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {filtered.map(item => (
+                    <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                      <td className="p-3 font-mono font-bold">
+                        <button
+                          onClick={() => navigateToCopForm(item.numeroDossier)}
+                          className="dossier-link text-blue-600 hover:text-blue-800 font-bold"
+                          title="Cliquer pour créer un COP pour ce dossier"
+                        >
+                          {item.numeroDossier}
+                          <span className="text-[10px] text-slate-400 ml-1">
+                            <i className="fas fa-pen-to-square"></i>
+                          </span>
+                        </button>
+                      </td>
+                      <td className="p-3 font-bold">{item.nomClient}</td>
+                      <td className="p-3">{item.contact || <span className="text-slate-300">—</span>}</td>
+                      <td className="p-3 font-semibold">{item.prestataire}</td>
+                      <td className="p-3">{item.dateAffectation || <span className="text-slate-300">—</span>}</td>
+                      <td className="p-3">{item.dateActivation || <span className="text-slate-300">—</span>}</td>
+                      <td className="p-3">
+                        <span className={`status-badge ${item.copEffectue === 'OUI' ? 'success' : 'warning'}`}>
+                          {item.copEffectue === 'OUI' ? 'OUI' : 'NON'}
+                        </span>
+                      </td>
+                      <td className="p-3">{item.technicienCop || <span className="text-slate-300">—</span>}</td>
+                      <td className="p-3">{item.localite}</td>
+                      <td className="p-3">{item.equipement || <span className="text-slate-300">—</span>}</td>
+                      <td className="p-3 font-mono"><GpsCell item={item} field="gpsClient" /></td>
+                      <td className="p-3 font-mono"><GpsCell item={item} field="gpsFat" /></td>
+                      <td className="p-3">{item.type || <span className="text-slate-300">—</span>}</td>
+                      {isAdmin && <td className="p-3"><span className="status-badge info">{item.source}</span></td>}
+                      {isAdmin && (
+                        <td className="p-3">
+                          <button
+                            onClick={() => { if (confirm(`Supprimer le client "${item.nomClient}" ?`)) { storageService.deleteClient(item.id); setClients(storageService.getClients()); } }}
+                            className="text-rose-600 hover:text-rose-800 font-bold transition-colors"
+                          >
+                            <i className="fas fa-trash-can"></i>
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // --- USERS VIEW (Design amélioré) ---
+    function UsersView({ currentUser }) {
+      const [users, setUsers] = useState(storageService.getUsers());
+      const [idPers, setIdPers] = useState(''); const [nom, setNom] = useState(''); const [prenom, setPrenom] = useState(''); const [role, setRole] = useState('TECHNICIEN');
+
+      const handleCreate = (e) => {
+        e.preventDefault();
+        if (!idPers.trim() || !nom.trim() || !prenom.trim()) { alert('Tous les champs sont requis.'); return; }
+        storageService.addUser({ personalId: idPers.trim(), nom: nom.trim(), prenom: prenom.trim(), password: 'Temp1234', role, statut: 'ACTIF' });
+        setUsers(storageService.getUsers());
+        setIdPers(''); setNom(''); setPrenom('');
+        alert(`Compte créé avec succès !\nID: ${idPers.trim()}\nMot de passe temporaire: Temp1234\nL'utilisateur devra changer son mot de passe à la première connexion.`);
+      };
+
+      const activeAdminCount = users.filter(u => u.role === 'ADMIN' && u.statut === 'ACTIF').length;
+
+      const handleToggleStatus = (u) => {
+        if (u.id === currentUser.id) return alert('Vous ne pouvez pas désactiver votre propre compte.');
+        if (u.role === 'ADMIN' && u.statut === 'ACTIF' && activeAdminCount <= 1) return alert('Impossible de désactiver le dernier compte ADMIN actif.');
+        const action = u.statut === 'ACTIF' ? 'désactiver' : 'réactiver';
+        if (!window.confirm(`Confirmer : ${action} le compte de ${u.prenom} ${u.nom} ?`)) return;
+        storageService.toggleUserStatus(u.id);
+        setUsers(storageService.getUsers());
+      };
+
+      const handleDelete = (u) => {
+        if (u.id === currentUser.id) return alert('Vous ne pouvez pas supprimer votre propre compte.');
+        if (u.role === 'ADMIN' && activeAdminCount <= 1 && u.statut === 'ACTIF') return alert('Impossible de supprimer le dernier compte ADMIN actif.');
+        if (!window.confirm(`Supprimer définitivement le compte de ${u.prenom} ${u.nom} (${u.personalId}) ? Cette action est irréversible.`)) return;
+        storageService.deleteUser(u.id);
+        setUsers(storageService.getUsers());
+      };
+
+      const handleResetPassword = (u) => {
+        if (!window.confirm(`Réinitialiser le mot de passe de ${u.prenom} ${u.nom} à "Temp1234" ?`)) return;
+        storageService.resetUserPassword(u.id);
+        setUsers(storageService.getUsers());
+        alert('Mot de passe réinitialisé à "Temp1234". L\'utilisateur devra le changer à la prochaine connexion.');
+      };
+
+      return (
+        <div className="space-y-6 fade-in">
+          <div className="glass-card rounded-3xl p-6 shadow-sm border border-purple-200 dark:border-purple-900/30">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-purple-500/20 flex items-center justify-center text-2xl text-purple-500">
+                <i className="fas fa-users-gear"></i>
+              </div>
+              <div>
+                <h1 className="text-2xl font-extrabold">Utilisateurs</h1>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  <i className="fas fa-user-check mr-1"></i> Gestion des comptes et permissions
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <form onSubmit={handleCreate} className="glass-card rounded-3xl p-6 shadow-sm grid grid-cols-1 sm:grid-cols-5 gap-3 text-xs">
+            <div>
+              <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
+                <i className="fas fa-id-card mr-1"></i> ID
+              </label>
+              <input type="text" placeholder="COP0004" required value={idPers} onChange={e => setIdPers(e.target.value)} className="input-modern w-full p-2 rounded-xl font-mono text-sm" />
+            </div>
+            <div>
+              <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
+                <i className="fas fa-user mr-1"></i> Nom
+              </label>
+              <input type="text" placeholder="Nom" required value={nom} onChange={e => setNom(e.target.value)} className="input-modern w-full p-2 rounded-xl text-sm" />
+            </div>
+            <div>
+              <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
+                <i className="fas fa-user mr-1"></i> Prénom
+              </label>
+              <input type="text" placeholder="Prénom" required value={prenom} onChange={e => setPrenom(e.target.value)} className="input-modern w-full p-2 rounded-xl text-sm" />
+            </div>
+            <div>
+              <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
+                <i className="fas fa-user-shield mr-1"></i> Rôle
+              </label>
+              <select value={role} onChange={e => setRole(e.target.value)} className="input-modern w-full p-2 rounded-xl text-sm">
+                <option value="TECHNICIEN">TECHNICIEN</option>
+                <option value="ADMIN">ADMIN</option>
+              </select>
+            </div>
+            <div className="flex items-end">
+              <button type="submit" className="w-full p-2 rounded-xl btn-primary text-white font-bold text-xs shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all">
+                <i className="fas fa-user-plus mr-1.5"></i> Créer
+              </button>
+            </div>
+          </form>
+
+          <div className="glass-card rounded-3xl shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="table-modern w-full text-left text-xs">
+                <thead className="border-b border-slate-200 dark:border-slate-700">
+                  <tr>
+                    <th className="p-3 font-extrabold uppercase tracking-wider"><i className="fas fa-id-card mr-1.5"></i>ID</th>
+                    <th className="p-3 font-extrabold uppercase tracking-wider"><i className="fas fa-user mr-1.5"></i>Nom</th>
+                    <th className="p-3 font-extrabold uppercase tracking-wider"><i className="fas fa-user-shield mr-1.5"></i>Rôle</th>
+                    <th className="p-3 font-extrabold uppercase tracking-wider"><i className="fas fa-circle mr-1.5"></i>Statut</th>
+                    <th className="p-3 font-extrabold uppercase tracking-wider"><i className="fas fa-key mr-1.5"></i>Reset Pass</th>
+                    <th className="p-3 font-extrabold uppercase tracking-wider"><i className="fas fa-sliders mr-1.5"></i>Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {users.map(u => (
+                    <tr key={u.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                      <td className="p-3 font-mono font-bold text-blue-600 dark:text-blue-400">{u.personalId}</td>
+                      <td className="p-3 font-bold">
+                        {u.prenom} {u.nom}
+                        {u.id === currentUser.id && <span className="ml-2 text-[10px] text-slate-400 font-normal">(vous)</span>}
+                      </td>
+                      <td className="p-3">
+                        <span className={`status-badge ${u.role === 'ADMIN' ? 'purple' : 'info'}`}>
+                          {u.role}
+                        </span>
+                      </td>
+                      <td className="p-3">
+                        <span className={`status-badge ${u.statut === 'ACTIF' ? 'success' : 'error'}`}>
+                          {u.statut}
+                        </span>
+                      </td>
+                      <td className="p-3">
+                        <button onClick={() => handleResetPassword(u)} className="text-amber-600 hover:text-amber-800 font-bold transition-colors text-[11px]">
+                          <i className="fas fa-rotate-right mr-1"></i> Réinitialiser
+                        </button>
+                      </td>
+                      <td className="p-3 space-x-3 whitespace-nowrap">
+                        <button onClick={() => handleToggleStatus(u)} className={`font-bold transition-colors text-[11px] ${u.statut === 'ACTIF' ? 'text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400' : 'text-emerald-600 hover:underline'}`}>
+                          <i className={`fas ${u.statut === 'ACTIF' ? 'fa-pause' : 'fa-play'} mr-1`}></i>
+                          {u.statut === 'ACTIF' ? 'Désactiver' : 'Réactiver'}
+                        </button>
+                        <button onClick={() => handleDelete(u)} className="text-rose-600 hover:text-rose-800 font-bold transition-colors text-[11px]">
+                          <i className="fas fa-trash-can mr-1"></i> Supprimer
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // --- PRESTATAIRES VIEW (Design amélioré) ---
+    function PrestatairesView({ currentUser }) {
+      const [items, setItems] = useState(storageService.getPrestataires());
+      const [nom, setNom] = useState(''); const [code, setCode] = useState('');
+
+      const handleAdd = (e) => {
+        e.preventDefault();
+        storageService.addPrestataire(nom, code);
+        setItems(storageService.getPrestataires());
+        setNom(''); setCode('');
+      };
+
+      return (
+        <div className="space-y-6 fade-in">
+          <div className="glass-card rounded-3xl p-6 shadow-sm border border-cyan-200 dark:border-cyan-900/30">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-cyan-500/20 flex items-center justify-center text-2xl text-cyan-500">
+                <i className="fas fa-building"></i>
+              </div>
+              <div>
+                <h1 className="text-2xl font-extrabold">Prestataires</h1>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  <i className="fas fa-handshake mr-1"></i> Gestion des prestataires FTTH
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <form onSubmit={handleAdd} className="glass-card rounded-3xl p-6 shadow-sm flex flex-wrap gap-3">
+            <div className="flex-1 min-w-[180px]">
+              <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
+                <i className="fas fa-building mr-1"></i> Nom
+              </label>
+              <input type="text" placeholder="Nom Prestataire" required value={nom} onChange={e => setNom(e.target.value)} className="input-modern w-full p-2 rounded-xl text-sm" />
+            </div>
+            <div className="flex-1 min-w-[120px]">
+              <label className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">
+                <i className="fas fa-hashtag mr-1"></i> Code
+              </label>
+              <input type="text" placeholder="Ex: CEL" required value={code} onChange={e => setCode(e.target.value)} className="input-modern w-full p-2 rounded-xl font-mono text-sm" />
+            </div>
+            <div className="flex items-end">
+              <button type="submit" className="px-4 py-2 rounded-xl btn-primary text-white font-bold text-xs shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all">
+                <i className="fas fa-plus mr-1.5"></i> Ajouter
+              </button>
+            </div>
+          </form>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {items.map(p => (
+              <div key={p.id} className="glass-card rounded-2xl p-4 shadow-sm flex justify-between items-center hover:shadow-md transition-all">
+                <div>
+                  <h4 className="font-bold text-sm flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                    {p.nom}
+                  </h4>
+                  <span className="font-mono text-xs text-blue-500">
+                    <i className="fas fa-hashtag mr-1"></i> CODE: {p.code}
+                  </span>
+                </div>
+                <button onClick={() => { storageService.deletePrestataire(p.id); setItems(storageService.getPrestataires()); }} className="text-rose-600 hover:text-rose-800 font-bold text-xs transition-colors">
+                  <i className="fas fa-trash-can mr-1"></i> Supprimer
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // --- PARAMÈTRES VIEW (Design amélioré) ---
+    function ParametresView({ currentUser, currentTheme, onThemeToggle, onUserUpdated, onLogout, onShowChangePassword }) {
+      const [resetNotice, setResetNotice] = useState(false);
+
+      const handleResetAll = () => {
+        storageService.resetAllPasswordsForTest();
+        const updated = storageService.getCurrentUser();
+        if (updated) onUserUpdated(updated);
+        setResetNotice(true);
+        setTimeout(() => setResetNotice(false), 4000);
+      };
+
+      return (
+        <div className="max-w-3xl mx-auto space-y-6 fade-in">
+          <div className="glass-card rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-slate-500/20 flex items-center justify-center text-2xl text-slate-500">
+                <i className="fas fa-sliders"></i>
+              </div>
+              <div>
+                <h1 className="text-2xl font-extrabold">Paramètres</h1>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  <i className="fas fa-wrench mr-1"></i> Configuration et personnalisation
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {resetNotice && (
+            <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold fade-in flex items-center gap-3">
+              <i className="fas fa-check-circle text-lg"></i>
+              <span>Tous les mots de passe ont été réinitialisés à "Temp1234".</span>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="glass-card rounded-3xl p-6 shadow-sm">
+              <h3 className="font-extrabold text-base border-b border-slate-200 dark:border-slate-700 pb-3 flex items-center gap-2">
+                <i className="fas fa-user-circle text-blue-500"></i>
+                Informations Utilisateur
+              </h3>
+              <div className="text-xs space-y-2 mt-4">
+                <div className="flex justify-between p-2 bg-slate-50/50 dark:bg-slate-800/30 rounded-xl">
+                  <span className="font-semibold text-slate-500">
+                    <i className="fas fa-id-card mr-1.5"></i> ID Personnel
+                  </span>
+                  <span className="font-mono font-bold text-blue-600 dark:text-blue-400">{currentUser.personalId}</span>
+                </div>
+                <div className="flex justify-between p-2 bg-slate-50/50 dark:bg-slate-800/30 rounded-xl">
+                  <span className="font-semibold text-slate-500">
+                    <i className="fas fa-user mr-1.5"></i> Nom
+                  </span>
+                  <span className="font-bold">{currentUser.prenom} {currentUser.nom}</span>
+                </div>
+                <div className="flex justify-between p-2 bg-slate-50/50 dark:bg-slate-800/30 rounded-xl">
+                  <span className="font-semibold text-slate-500">
+                    <i className="fas fa-user-shield mr-1.5"></i> Rôle
+                  </span>
+                  <span className="font-bold">
+                    <span className={`status-badge ${currentUser.role === 'ADMIN' ? 'purple' : 'info'}`}>
+                      {currentUser.role}
+                    </span>
+                  </span>
+                </div>
+                <div className="flex justify-between p-2 bg-slate-50/50 dark:bg-slate-800/30 rounded-xl">
+                  <span className="font-semibold text-slate-500">
+                    <i className="fas fa-circle mr-1.5"></i> Statut
+                  </span>
+                  <span className={`font-bold ${currentUser.statut === 'ACTIF' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    <span className={`status-badge ${currentUser.statut === 'ACTIF' ? 'success' : 'error'}`}>
+                      {currentUser.statut}
+                    </span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div className="glass-card rounded-3xl p-6 shadow-sm">
+                <h3 className="font-extrabold text-base border-b border-slate-200 dark:border-slate-700 pb-3 flex items-center gap-2">
+                  <i className="fas fa-palette text-purple-500"></i>
+                  Thème d'Affichage
+                </h3>
+                <div className="grid grid-cols-2 gap-3 mt-4">
+                  <button
+                    onClick={() => onThemeToggle('light')}
+                    className={`p-3 rounded-xl border-2 font-bold text-xs transition-all hover:scale-[1.02] ${currentTheme === 'light' ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 shadow-[0_0_20px_rgba(59,130,246,0.15)]' : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}
+                  >
+                    <i className="fas fa-sun mr-2"></i> Clair
+                  </button>
+                  <button
+                    onClick={() => onThemeToggle('dark')}
+                    className={`p-3 rounded-xl border-2 font-bold text-xs transition-all hover:scale-[1.02] ${currentTheme === 'dark' ? 'border-cyan-500 bg-cyan-950/30 text-cyan-300 shadow-[0_0_20px_rgba(6,182,212,0.15)]' : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}
+                  >
+                    <i className="fas fa-moon mr-2"></i> Sombre
+                  </button>
+                </div>
+              </div>
+
+              <div className="glass-card rounded-3xl p-6 shadow-sm">
+                <h3 className="font-extrabold text-base border-b border-slate-200 dark:border-slate-700 pb-3 flex items-center gap-2">
+                  <i className="fas fa-key text-amber-500"></i>
+                  Compte
+                </h3>
+                <div className="space-y-3 mt-4">
+                  <button
+                    onClick={onShowChangePassword}
+                    className="w-full py-3 rounded-xl bg-blue-600 text-white font-bold text-xs shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
+                  >
+                    <i className="fas fa-key"></i> Changer le mot de passe
+                  </button>
+                  <button
+                    onClick={onLogout}
+                    className="w-full py-3 rounded-xl bg-rose-600 text-white font-bold text-xs shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
+                  >
+                    <i className="fas fa-arrow-right-from-bracket"></i> Se déconnecter
+                  </button>
+                </div>
+              </div>
+
+              <div className="glass-card rounded-3xl p-6 shadow-sm">
+                <h3 className="font-extrabold text-base border-b border-slate-200 dark:border-slate-700 pb-3 flex items-center gap-2">
+                  <i className="fas fa-shield-halved text-amber-500"></i>
+                  Sécurité & Tests
+                </h3>
+                <div className="mt-4">
+                  <button
+                    onClick={handleResetAll}
+                    className="w-full py-3 rounded-xl bg-amber-500 text-white font-bold text-xs shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
+                  >
+                    <i className="fas fa-rotate"></i> Réinitialiser les mots de passe
+                  </button>
+                  <p className="text-[10px] text-slate-400 text-center mt-2">
+                    <i className="fas fa-info-circle mr-1"></i>
+                    Tous les utilisateurs devront changer leur mot de passe à la prochaine connexion.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // --- APP ---
+    function App() {
+      const [currentUser, setCurrentUser] = useState(storageService.getCurrentUser());
+      const [activeTab, setActiveTab] = useState('dashboard');
+      const [theme, setTheme] = useState(storageService.getTheme());
+      const [sidebarOpen, setSidebarOpen] = useState(false);
+      const [showChangePassword, setShowChangePassword] = useState(false);
+
+      useEffect(() => {
+        storageService.setTheme(theme);
+        const user = storageService.getCurrentUser();
+        if (user && user.mustChangePassword) setShowChangePassword(true);
+      }, [theme]);
+
+      useEffect(() => {
+        const handleNavigate = (e) => {
+          const dossier = e.detail?.dossier;
+          if (dossier) {
+            localStorage.setItem(STORAGE_KEYS.PREFILL_DOSSIER, dossier);
+            setActiveTab('nouveau-cop');
+          }
+        };
+        window.addEventListener('navigateToCopForm', handleNavigate);
+        return () => window.removeEventListener('navigateToCopForm', handleNavigate);
+      }, []);
+
+      const handleThemeToggle = (t) => { setTheme(t); storageService.setTheme(t); };
+      
+      const handleLogout = () => { 
+        storageService.setCurrentUser(null); 
+        setCurrentUser(null); 
+        setShowChangePassword(false);
+        window.location.reload();
+      };
+      
+      const handleShowChangePassword = () => {
+        setShowChangePassword(true);
+      };
+
+      const handlePasswordChanged = () => {
+        const user = storageService.getCurrentUser();
+        if (user) { user.mustChangePassword = false; storageService.updateUser(user); setCurrentUser(user); setShowChangePassword(false); }
+      };
+
+      if (!currentUser) {
+        return (
+          <div className="flex flex-col min-h-screen">
+            <div className="flex-1"><LoginScreen onLoginSuccess={(u) => setCurrentUser(u)} /></div>
+            <FooterCredit />
+          </div>
+        );
+      }
+
+      if (showChangePassword || currentUser.mustChangePassword) {
+        return (
+          <div className="flex flex-col min-h-screen">
+            <div className="flex-1"><ChangePasswordScreen onSuccess={handlePasswordChanged} currentUser={currentUser} /></div>
+            <FooterCredit />
+          </div>
+        );
+      }
+
+      const menuItems = [
+        { id: 'dashboard', label: 'Tableau de bord', icon: 'fa-chart-pie', adminOnly: false },
+        { id: 'nouveau-cop', label: 'Nouveau COP', icon: 'fa-pen-to-square', adminOnly: false },
+        { id: 'historique-cop', label: 'Liste des COP', icon: 'fa-list-check', adminOnly: false },
+        { id: 'clients-programmes', label: 'Clients programmés', icon: 'fa-users', adminOnly: false },
+        { id: 'utilisateurs', label: 'Utilisateurs', icon: 'fa-users-gear', adminOnly: true },
+        { id: 'prestataires', label: 'Prestataires', icon: 'fa-building', adminOnly: true },
+        { id: 'parametres', label: 'Paramètres', icon: 'fa-sliders', adminOnly: false },
+      ];
+
+      return (
+        <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 font-sans">
+          <header className="sticky top-0 z-30 glass border-b border-white/30 dark:border-slate-800/50">
+            <div className="px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-800/50 lg:hidden transition-all">
+                  <i className="fas fa-bars text-lg"></i>
+                </button>
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-600 via-cyan-500 to-emerald-400 flex items-center justify-center text-white font-extrabold shadow-lg pulse-glow">
+                    <i className="fas fa-wifi text-lg"></i>
+                  </div>
+                  <div className="hidden sm:block">
+                    <span className="font-extrabold text-base sm:text-lg gradient-text block leading-tight">CELTIIS COP FTTH</span>
+                    <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 tracking-wider uppercase block">
+                      <i className="fas fa-microchip mr-1"></i> Gestion des Contrôles Qualité
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-3">
+                <button onClick={() => setActiveTab('parametres')} className="p-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-all" title="Paramètres">
+                  <i className="fas fa-sliders text-sm"></i>
+                </button>
+                <div className="flex items-center space-x-2 pl-2 border-l border-slate-200 dark:border-slate-700">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 text-white font-bold text-sm flex items-center justify-center shadow-lg">
+                    {currentUser.prenom[0]}{currentUser.nom[0]}
+                  </div>
+                  <div className="hidden sm:block text-left leading-tight">
+                    <div className="text-xs font-bold text-slate-800 dark:text-slate-100">{currentUser.prenom} {currentUser.nom}</div>
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono flex items-center gap-1.5">
+                      <span className="bg-blue-100 dark:bg-blue-950/50 px-1.5 py-0.5 rounded text-blue-700 dark:text-blue-300 font-bold">{currentUser.personalId}</span>
+                      <span className="text-slate-400">•</span>
+                      <span className={`status-badge ${currentUser.role === 'ADMIN' ? 'purple' : 'info'}`} style={{ fontSize: '0.5rem' }}>
+                        {currentUser.role}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          <div className="flex flex-1">
+            <aside className={`fixed top-16 bottom-0 left-0 z-40 w-64 glass border-r border-white/30 dark:border-slate-800/50 transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} flex flex-col justify-between p-3 shadow-xl backdrop-blur-xl`}>
+              <nav className="space-y-1 mt-2">
+                {menuItems.map(item => {
+                  if (item.adminOnly && currentUser.role !== 'ADMIN') return null;
+                  const isActive = activeTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
+                      className={`nav-item w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-xs font-bold transition-all ${isActive ? 'active text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-white/30 dark:hover:bg-slate-800/30'}`}
+                    >
+                      <i className={`fas ${item.icon} w-5 text-center ${isActive ? 'text-white' : 'text-slate-400 dark:text-slate-500'}`}></i>
+                      <span>{item.label}</span>
+                      {isActive && (
+                        <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white/50 animate-pulse"></span>
+                      )}
+                    </button>
+                  );
+                })}
+              </nav>
+
+              <div className="p-2 border-t border-slate-200/50 dark:border-slate-700/50 pt-4">
+                <button
+                  onClick={() => { setActiveTab('parametres'); setSidebarOpen(false); }}
+                  className="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-white/30 dark:hover:bg-slate-800/30 transition-all"
+                >
+                  <i className="fas fa-user-circle w-5 text-center text-blue-500"></i>
+                  <span>Mon compte</span>
+                </button>
+              </div>
+            </aside>
+
+            <main className="flex-1 lg:pl-64 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full slide-in">
+              {activeTab === 'dashboard' && <DashboardView />}
+              {activeTab === 'nouveau-cop' && <CopFormView currentUser={currentUser} onSuccess={() => setActiveTab('historique-cop')} />}
+              {activeTab === 'historique-cop' && <CopHistoryView currentUser={currentUser} />}
+              {activeTab === 'clients-programmes' && <ClientImportView currentUser={currentUser} />}
+              {activeTab === 'utilisateurs' && <UsersView currentUser={currentUser} />}
+              {activeTab === 'prestataires' && <PrestatairesView currentUser={currentUser} />}
+              {activeTab === 'parametres' && (
+                <ParametresView
+                  currentUser={currentUser}
+                  currentTheme={theme}
+                  onThemeToggle={handleThemeToggle}
+                  onUserUpdated={u => setCurrentUser(u)}
+                  onLogout={handleLogout}
+                  onShowChangePassword={handleShowChangePassword}
+                />
+              )}
+            </main>
+          </div>
+          <FooterCredit />
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
